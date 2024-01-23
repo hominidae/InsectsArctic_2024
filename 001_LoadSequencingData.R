@@ -194,7 +194,7 @@ write_tsv(x = arcbb_expanded_na, "data/arcbb/arcbb-sequencedata.tsv")
 rm(x,y,arcbb_sequencedata,arcbb_splitdata,arcbb_expanded,arcbb_expanded_na)
 
 # Process ARCBIOY5 ---------------------------------------------------------------
-ARCBIOY5_sequencedata <- read.fasta(file = "data/ARCBIOY5/SequenceData.fas")
+ARCBIOY5_sequencedata <- read.fasta(file = "data/DS-ARCBIOY5/SequenceData.fas")
 x <- ARCBIOY5_sequencedata$seq.name
 y <- x %>%
   str_split("\\|")
@@ -203,11 +203,11 @@ ARCBIOY5_expanded <- data.frame(ARCBIOY5_sequencedata$seq.text,ARCBIOY5_sequence
 names(ARCBIOY5_expanded) <- c("seq.data","seq.text","process.id","taxon","sample.id","bin.uri")
 ARCBIOY5_expanded_na <- ARCBIOY5_expanded %>%
   mutate_all(na_if,"")
-write_tsv(x = ARCBIOY5_expanded_na, "data/ARCBIOY5/ARCBIOY5-sequencedata.tsv")
+write_tsv(x = ARCBIOY5_expanded_na, "data/DS-ARCBIOY5/ARCBIOY5-sequencedata.tsv")
 rm(x,y,ARCBIOY5_sequencedata,ARCBIOY5_splitdata,ARCBIOY5_expanded,ARCBIOY5_expanded_na)
 
 # Process ARCBIOY6 ---------------------------------------------------------------
-ARCBIOY6_sequencedata <- read.fasta(file = "data/ARCBIOY6/SequenceData.fas")
+ARCBIOY6_sequencedata <- read.fasta(file = "data/DS-ARCBIOY6/SequenceData.fas")
 x <- ARCBIOY6_sequencedata$seq.name
 y <- x %>%
   str_split("\\|")
@@ -216,5 +216,5 @@ ARCBIOY6_expanded <- data.frame(ARCBIOY6_sequencedata$seq.text,ARCBIOY6_sequence
 names(ARCBIOY6_expanded) <- c("seq.data","seq.text","process.id","taxon","sample.id","bin.uri")
 ARCBIOY6_expanded_na <- ARCBIOY6_expanded %>%
   mutate_all(na_if,"")
-write_tsv(x = ARCBIOY6_expanded_na, "data/ARCBIOY6/ARCBIOY6-sequencedata.tsv")
+write_tsv(x = ARCBIOY6_expanded_na, "data/DS-ARCBIOY6/ARCBIOY6-sequencedata.tsv")
 rm(x,y,ARCBIOY6_sequencedata,ARCBIOY6_splitdata,ARCBIOY6_expanded,ARCBIOY6_expanded_na)
