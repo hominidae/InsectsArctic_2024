@@ -3,12 +3,16 @@
 # Take the DNA Barcoding data and output it as a FASTA file that we can load into Mega
 # From there, ALIGN the sequences, then pass on to MrBayes for analysis
 
+# LEFT OFF HERE
+
 # Load libraries
 library(tidyverse)
 library(phylotools)
 
-# Load the data
+# Load all the data
 kitikmeotdata <- read_tsv("data/kitikmeot_data_arth.tsv")
+# Load just Cambridge Bay
+cambridgebay <- read_tsv("data/cambridgebay_2024_01_22.tsv")
 
 # Generate fasta files for Mega ----
 # Before we go any further, let's do a little filtering to generate some phylogenetic tree's in Mega
@@ -20,16 +24,16 @@ kitikmeotdata <- read_tsv("data/kitikmeot_data_arth.tsv")
 # dat2fasta(dat, outfile = "out.fasta")
 
 # Right, let's take all Lepidoptera from Cambridge Bay and generate a NJT phylogenetic tree
-kitikmeot_lepidoptera <- kitikmeotdata %>%
+cbay_lepidoptera <- cambridgebay %>%
   filter(Order == "Lepidoptera")
 
 # Next, we need to strip it down to just seq.name and seq.text
-kitikmeot_lepidoptera <- kitikmeot_lepidoptera %>%
+cbay_lepidoptera <- cbay_lepidoptera %>%
   select(seq.text,seq.data)
-names(kitikmeot_lepidoptera) <- c("seq.name", "seq.text")
+names(cbay_lepidoptera) <- c("seq.name", "seq.text")
 
 # Attempt to save as a fasta format file to run through Mega for alignment and tree generation
-dat2fasta(kitikmeot_lepidoptera, outfile = "data/MEGA/kitikmeot_lepidoptera.fas")
+dat2fasta(cbay_lepidoptera, outfile = "data/MEGA/cbay_lepidoptera.fas")
 # Right, so we ran that through NJT in MEGA. It was cool, but the MLE method in Mega failed.
 # Likely due to the number of sequences and how different they are.
 # Instead, we'll feed these sequences into MrBayes instead.
