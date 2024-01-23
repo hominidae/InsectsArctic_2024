@@ -29,14 +29,12 @@ table(canada_data$province_state)
 # Easy peasy. We just need to remove the isolated items from odd places.
 
 # We will do that by selecting only the provinces we want. So, getting rid of US states and other odd matches.
-canada_data_alberta <- canada_data %>%
+canada_data_ab <- canada_data %>%
   filter(province_state == "Alberta")
 canada_data_bc <- canada_data %>%
   filter(province_state == "British Columbia")
-canada_data_manitoba <- canada_data %>%
+canada_data_mb <- canada_data %>%
   filter(province_state == "Manitoba")
-canada_data_sk <- canada_data %>%
-  filter(province_state == "Saskatchewan")
 canada_data_nb <- canada_data %>%
   filter(province_state == "New Brunswick")
 canada_data_nf <- canada_data %>%
@@ -49,16 +47,20 @@ canada_data_nt <- canada_data %>%
   filter(province_state == "Nunavut")
 canada_data_on <- canada_data %>%
   filter(province_state == "Ontario")
+canada_data_pei <- canada_data %>%
+  filter(province_state == "Prince Edward Island")
 canada_data_qc <- canada_data %>%
   filter(province_state == "Quebec")
+canada_data_sk <- canada_data %>%
+  filter(province_state == "Saskatchewan")
 canada_data_yk <- canada_data %>%
   filter(province_state == "Yukon Territory")
 
 # Great, we've got 'em isolated. Now put 'em all back together.
-canada_data <- bind_rows(canada_data_alberta,canada_data_bc,canada_data_manitoba,canada_data_sk,canada_data_nb,canada_data_nf,canada_data_nwt,canada_data_ns,canada_data_nt,canada_data_on,canada_data_qc,canada_data_yk)
+canada_data <- bind_rows(canada_data_ab,canada_data_bc,canada_data_mb,canada_data_nb,canada_data_nf,canada_data_nwt,canada_data_ns,canada_data_nt,canada_data_on,canada_data_pei,canada_data_qc,canada_data_sk,canada_data_yk)
 
 # Garbage clean-up
-rm(canada_data_alberta,canada_data_bc,canada_data_manitoba,canada_data_sk,canada_data_nb,canada_data_nf,canada_data_ns,canada_data_nt,canada_data_nwt,canada_data_on,canada_data_qc,canada_data_yk)
+rm(canada_data_ab,canada_data_bc,canada_data_mb,canada_data_nb,canada_data_nf,canada_data_nwt,canada_data_ns,canada_data_nt,canada_data_on,canada_data_pei,canada_data_qc,canada_data_sk,canada_data_yk)
 
 # Let's check that we've effectively cleaned up our data.
 table(canada_data$province_state)
