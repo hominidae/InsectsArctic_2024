@@ -44,31 +44,47 @@ library(phylotools)
 # Load our working data set ----
 workingdata <- read_tsv("data/kitikmeot_data_arth.tsv")
 
-# Before we remove NA's let's look at what we're losing
+# Before we remove NA's in the bin.uri column, let's look at what sequences we're losing
 nonworkingdata <- (workingdata[is.na(workingdata$bin.uri),])
 
 # Let's get a count of the order's represented in that data
 out <- nonworkingdata %>%
   select(Class,Order) %>%
   count(Class,Order)
-# We did this to record those values for later:
-# 547 Diptera, 425 Hymenoptera, 365 Arachnida, 78 Araneae, 189 Hemiptera, 232 Collembola, 137 other
 # Do some garbage collection
 rm(out,nonworkingdata)
 
 # Remove any NA's from bin.uri in workingdata
 workingdata <- workingdata %>%
   drop_na(bin.uri)
-# Note: There are 31833 specimens
-# After removing any NA's in bin.uri, there are 29860 left. A difference of 1973.
 
 # Clean up Kitikmeot data ----
 # Remove any sector that does not conform to a few selected communities by renaming them.
+
 # To do that, we'll replace any instance where "3km NW Cambridge Bay, Water Lake Site" as just "Cambridge Bay" instead
 workingdata$Sector[workingdata$Sector == "3 km NW Cambridge Bay, Water Lake site"] <- "Cambridge Bay"
 
 # Trust, but verify.
 table(workingdata$Sector)
+# There are quite a few more not within the communities:
+# 100km ENE of Bathrust Inlet
+# Bathurst Inlet
+# Churchill Northern Studies Centre
+# Icebreaker Channel
+# North Shaler Mountains
+# Queen Maud Gulf Bird Sanctuary
+# Robinson
+# Somerset Island
+# Taloyoak
+# Victoria Island
+# Whitehorse
+
+# Let's take a look at Taloyoak and see if we should include it in our analysis.
+taloyoak <- workingdata %>%
+  filter(Sector == "Taloyoak")
+# These specimens were collected by ARCBIO and the Elise's team from Cambridge Bay
+# They were collected in 2022.
+# 4343 specimens were sequenced.
 
 # There are a few odd ones left. 1 from the North Shaler Mountains, 29 from Icebreaker Channel
 # We'll effectively ignore those as well, but let's have a look at them while we're at it.
@@ -77,7 +93,8 @@ location1 <- workingdata %>%
 # Interesting, all Amphipoda. But we're not really interested in aquatic invertebrates so we'll ignore it.
 location2 <- workingdata %>%
   filter(Sector == "North Shaler Mountains")
-# The collembola is interesting though. Let's look at that further. It's BIN URI is BOLD:AAI8142
+# The Collembola is interesting though. Let's look at that further. It's BIN URI is BOLD:AAI8142
+# It was collected while processing samples from moss prior to pressing in August of 2021
 rm(location1,location2)
 
 # The Icebreaker Channel data isn't what we're looking for. So we'll discard it. In fact, we'll remove it when we select down to the Phylum Arthropoda later.
@@ -87,10 +104,12 @@ lookatme <- workingdata %>%
   filter(bin.uri == "BOLD:AAI8142")
 # Where are the matches from samples that I helped collect?
 table(lookatme$Sector)
-# Interesting. 40 matches to our data from the 4 communities. 12 to Cambridge Bay, 19 to Gjoa Haven, 8 to Kugaaruk.
+# These could be very interesting to look at.
+# Interestingly, additional specimens were collected by E. Dickenson, S. Kutz in 2022 from Somerset Island.
+# I'm not working on Collembola specifically, but it'd be very interesting to compare their genetic distance.
+
 # Nonetheless, Let's put it aside since it's not necessary to work with it just yet.
 rm(lookatme)
-# It is interesting to know that the other matching locations for this BIN are in Cambridge Bay, Gjoa Haven, and Kugaaruk. And is conspicuously absent from Kugluktuk.
 
 # I wonder if we took that and compared it to the public Nunavut BOLD data.
 # Let's reload our Nunavut data from the previous script and see where that particular BIN is present. Is it all across the arctic?
@@ -101,13 +120,15 @@ lookatme <- canada_data_arthropoda %>%
   filter(bin_uri == "BOLD:AAI8142")
 # Take a quick peek
 table(lookatme$sector)
+# Quite a bit all over Nunavut
 # Fascinating eh?
 
 # That specific BIN found on Northern Victoria Island is present not just on Ellesmere Island, but Cambridge Bay, Gjoa Haven, Kugaaruk, Qikiqtarjuaq, Resolute Bay, and Bylot Island.
 # Nonetheless, let's put it aside for now.
-rm(lookatme,canada_data)
+rm(lookatme,canada_data_arthropoda)
 
 # Okay cool, let's move on. "Victoria Island" will need to be dropped. "North Shaler Mountains" will also need to be dropped too.
+# Matter of fact, let's drop anything that doesn't match the named communities we've sampled in.
 # Let's try that. To do that, we'll create by community then re-combine.
 test <- workingdata %>%
   filter(Sector == "Cambridge Bay")
@@ -117,18 +138,19 @@ test2 <- workingdata %>%
   filter(Sector == "Kugaaruk")
 test3 <- workingdata %>%
   filter(Sector == "Kugluktuk")
-test4 <- rbind(test,test1)
-test5 <- rbind(test4,test2)
-test6 <- rbind(test5,test3)
-workingdata <- test6
-rm(test,test1,test2,test3,test4,test5,test6)
-# So, we've eliminated 30 specimens from places not in our target location(s) of Cambridge Bay, Kugluktuk, Gjoa Haven, and Kugaaruk
+test4 <- workingdata %>%
+  filter(Sector == "Taloyoak")
+test5 <- rbind(test,test1,test2,test3,test4)
+workingdata <- test5
+rm(test,test1,test2,test3,test4,test5)
+# So, we've eliminated specimens that are not from the places our target location(s) of Cambridge Bay, Kugluktuk, Gjoa Haven, Kugaaruk, and Taloyoak
 
 # Let's filter that down even further to just Arthropoda. Doesn't do much because we already have, but just in case.
 workingdata <- workingdata %>%
   filter(Phylum == "Arthropoda")
 
 # Let's remove any duplicates from working data too.
+# This is important because we're working with duplicate data from ARCBIO, which our specimens are part of.
 workingdata <- workingdata %>%
   distinct(`Sample ID`, .keep_all = TRUE)
 
@@ -139,7 +161,7 @@ names(workingdata)[names(workingdata) == "Collection Date"] <- "CollectionDate"
 workingdata <- workingdata %>%
   mutate(CollectionDate = as.Date(CollectionDate, format = "%d-%b-%Y"))
 
-# Let's remove some NA's
+# Let's remove some NA's from Order
 workingdata <- workingdata %>%
   drop_na(Order)
 
@@ -153,10 +175,42 @@ ggplot(workingdata, aes(y = Sector)) +
   geom_label(stat='count', aes(label=after_stat(count)))
 
 # Save our state
-write_tsv(x = workingdata, "data/workingdata_2023_12_19.tsv")
+write_tsv(x = workingdata, "data/workingdata_2024_01_22.tsv")
 
-# Let's do what we really came here for. We're going to generate some site collection maps from data I was involved in collecting samples for.
-# Let's start with Cambridge Bay
+# Right, within arthropoda, let's remove some of the aquatic invertabrate orders that we aren't interested in.
+# What are they?
+table(workingdata$Order)
+# Here's a list of what we need to keep:
+# Araneae - Spiders
+# Coleoptera - Beetles
+# Diptera - Flies
+# Entomobryomorpha - Springtails
+# Ephemeroptera - Mayflies
+# Hemiptera - "true bugs"
+# Hymenoptera - Sawflies, wasps, bees, and ants
+# Lepidoptera - Butterflies and moths
+# Mesostigmata - Mites, including parasitiformes
+# Neuroptera - Net-winged insects
+# Orthoptera - Grasshoppers, locusts, and crickets
+# Plecoptera - Stoneflies
+# Poduromorpha - Springtails
+# Psocodea - Bark lice, book lice, parasitic lice
+# Sarcoptiformes - Mites
+# Siphonaptera - Fleas
+# Symphypleona - Springtails
+# Thysanoptera - Thrips
+# Trichoptera - Aquatic larvae, terrestrial adults. Caddisflies, closely related to lepidoptera
+# Trombidiformes - Mites
+
+# Let's use a select statement for the values we want to keep.
+workingdata <- workingdata %>%
+  filter(Order %in% c("Araneae", "Coleoptera", "Diptera", "Entomobryomorpha", "Ephemeroptera",
+                      "Hemiptera", "Hymenoptera", "Lepidoptera", "Mesostigmata", "Neuroptera",
+                      "Orthoptera", "Plecoptera", "Poduromorpha", "Psocodea", "Sarcoptiformes",
+                      "Siphonaptera", "Siphonaptera", "Symphypleona", "Thysanoptera", "Trichoptera",
+                      "Trombidiformes"))
+
+# Now, let's do what we really came here for. We're going to generate some site collection maps from data I was involved in collecting samples for.
 cambridgebay <- workingdata %>%
   filter(Sector == "Cambridge Bay")
 kugluktuk <- workingdata %>%
@@ -165,6 +219,8 @@ gjoahaven <- workingdata %>%
   filter(Sector == "Gjoa Haven")
 kugaaruk <- workingdata %>%
   filter(Sector == "Kugaaruk")
+taloyoak <- workingdata %>%
+  filter(Sector == "Taloyoak")
 
 # Before we move on, we need to remove duplicates. This is because we added duplicate data with the Arcbio data.
 # We use distinct() to do that.
@@ -176,19 +232,23 @@ kugaaruk <- kugaaruk %>%
   distinct(`Sample ID`, .keep_all = TRUE)
 gjoahaven <- gjoahaven %>%
   distinct(`Sample ID`, .keep_all = TRUE)
+taloyoak <- taloyoak %>%
+  distinct(`Sample ID`, .keep_all = TRUE)
 
 # Let's summarize:
 # Cambridge Bay - 27527
 # Kugluktuk - 11046
 # Gjoa Haven - 10303
 # Kugaaruk - 7221
+# Taloyoak - 4311
 # All duplicates removed.
 
 # Let's perform a save of what we've done so far
-write_tsv(x = cambridgebay, "data/cambridgebay_2024_01_04.tsv")
-write_tsv(x = kugluktuk, "data/kugluktuk_2024_01_04.tsv")
-write_tsv(x = gjoahaven, "data/gjoahaven_2024_01_04.tsv")
-write_tsv(x = kugaaruk, "data/kugaaruk_2024_01_04.tsv")
+write_tsv(x = cambridgebay, "data/cambridgebay_2024_01_22.tsv")
+write_tsv(x = kugluktuk, "data/kugluktuk_2024_01_22.tsv")
+write_tsv(x = gjoahaven, "data/gjoahaven_2024_01_22.tsv")
+write_tsv(x = kugaaruk, "data/kugaaruk_2024_01_22.tsv")
+write_tsv(x = kugaaruk, "data/taloyoak_2024_01_22.tsv")
 
 # Let's do a little mapping. We want a figure to represent our sampling sites in Cambridge Bay.
 # register_google(key = "YOURKEYHERE")
@@ -210,8 +270,6 @@ cbaymap <- mp +
              aes(x = Lon, y = Lat,
                  color=Order))
 cbaymap
-# Notice that this map includes a large number of aquatic invertabrates. Let's come back to this later in the next couple of scripts.
-# But for now let's map the other communities.
 
 # Map Kugluktuk
 # 67.825433738975, -115.0979912275245
@@ -227,7 +285,6 @@ kuglmap <- mp +
              aes(x = Lon, y = Lat,
                  color=Order))
 kuglmap
-# Notice again that Kugluktuk has a few aquatic invertabrates in the data set. I actually was not involved in collecting any specimens from Kugluktuk.
 
 # Map Gjoa Haven
 # 68.63577789587174, -95.85026693927082
@@ -243,7 +300,6 @@ gjoamap <- mp +
              aes(x = Lon, y = Lat,
                  color=Order))
 gjoamap
-# Again, there are aquatic inverts present. We'll remove those later.
 
 # Map Kugaaruk
 # 68.53463953708601, -89.82512154873845
@@ -259,7 +315,20 @@ kugamap <- mp +
              aes(x = Lon, y = Lat,
                  color=Order))
 kugamap
-# Lovely, we have even more aquatic inverts. No worries, we won't be using them.
+
+# Last, let's do Taloyoak
+talo_map <- get_map(
+  location = c(-93.5354,69.5380),
+  scale = "auto",
+  zoom = 9,
+  source = "google",
+  force = TRUE)
+mp <- ggmap(talo_map)
+talomap <- mp +
+  geom_point(data = taloyoak,
+             aes(x = Lon, y = Lat,
+                 color=Order))
+talomap
 # That's it for now, we'll return to this mapping later once we've done more processing.
 
 # Let's do something fun. Let's use the alluvial package to plot some things.
@@ -298,8 +367,8 @@ ggplot(data = workingdata_boldcount_dates,
   ggtitle("Test plot")
 
 # Garbage collection
-rm(cbay_map,kugl_map,gjoa_map,kuga_map)
-rm(cbaymap,gjoamap,kugamap,kuglmap)
-rm(cambridgebay,kugluktuk,gjoahaven,kugaaruk)
+rm(cbay_map,kugl_map,gjoa_map,kuga_map,talo_map)
+rm(cbaymap,gjoamap,kugamap,kuglmap,talomap)
+rm(cambridgebay,kugluktuk,gjoahaven,kugaaruk,taloyoak)
 rm(clean_syrphidae,diptera,syrphidae)
 rm(canada_data_arthropoda,mp,workingdata,workingdata_boldcount,workingdata_boldcount_dates)
