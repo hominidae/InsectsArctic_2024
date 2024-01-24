@@ -4,6 +4,13 @@
 # From there, ALIGN the sequences, then pass on to MrBayes for analysis
 
 # LEFT OFF HERE
+# Todo:
+# - Sort out issue with seq.name
+#  . Use SampleID by itself as that can be filled in later with more information
+# - Sort out the issue with the sequences
+#  . Alignment is fine, but empty spaces and other junk needs to be trimmed out
+#  . When run in MrBayes, we want the largest usable region.
+#  . Leading and trailing whitespace needs to be deleted.
 
 # Load libraries
 library(tidyverse)
@@ -11,8 +18,12 @@ library(phylotools)
 
 # Load all the data
 kitikmeotdata <- read_tsv("data/kitikmeot_data_arth.tsv")
-# Load just Cambridge Bay
+# Load just Cambridge Bay, Kugluktuk, Gjoa Haven, Kugaaruk, and Taloyoak
 cambridgebay <- read_tsv("data/cambridgebay_2024_01_22.tsv")
+kugluktuk <- read_tsv("data/kugluktuk_2024_01_22.tsv")
+gjoahaven <- read_tsv("data/gjoahaven_2024_01_22.tsv")
+kugaaruk <- read_tsv("data/kugaaruk_2024_01_22.tsv")
+taloyoak <- read_tsv("data/taloyoak_2024_01_22.tsv")
 
 # Generate fasta files for Mega ----
 # Before we go any further, let's do a little filtering to generate some phylogenetic tree's in Mega
