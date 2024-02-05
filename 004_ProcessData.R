@@ -48,6 +48,7 @@ workingdata <- read_tsv("data/kitikmeot_data_arth.tsv")
 nonworkingdata <- (workingdata[is.na(workingdata$bin.uri),])
 
 # Let's get a count of the order's represented in that data
+# Reminder: These are data without an assigned BIN
 out <- nonworkingdata %>%
   select(Class,Order) %>%
   count(Class,Order)
@@ -60,7 +61,6 @@ workingdata <- workingdata %>%
 
 # Clean up Kitikmeot data ----
 # Remove any sector that does not conform to a few selected communities by renaming them.
-
 # To do that, we'll replace any instance where "3km NW Cambridge Bay, Water Lake Site" as just "Cambridge Bay" instead
 workingdata$Sector[workingdata$Sector == "3 km NW Cambridge Bay, Water Lake site"] <- "Cambridge Bay"
 
@@ -79,53 +79,9 @@ table(workingdata$Sector)
 # Victoria Island
 # Whitehorse
 
-# Let's take a look at Taloyoak and see if we should include it in our analysis.
-taloyoak <- workingdata %>%
-  filter(Sector == "Taloyoak")
-# These specimens were collected by ARCBIO and the Elise's team from Cambridge Bay
-# They were collected in 2022.
-# 4343 specimens were sequenced.
-
-# There are a few odd ones left. 1 from the North Shaler Mountains, 29 from Icebreaker Channel
-# We'll effectively ignore those as well, but let's have a look at them while we're at it.
-location1 <- workingdata %>%
-  filter(Sector == "Icebreaker Channel")
-# Interesting, all Amphipoda. But we're not really interested in aquatic invertebrates so we'll ignore it.
-location2 <- workingdata %>%
-  filter(Sector == "North Shaler Mountains")
-# The Collembola is interesting though. Let's look at that further. It's BIN URI is BOLD:AAI8142
-# It was collected while processing samples from moss prior to pressing in August of 2021
-rm(location1,location2)
-
-# The Icebreaker Channel data isn't what we're looking for. So we'll discard it. In fact, we'll remove it when we select down to the Phylum Arthropoda later.
-# However, the springtail specimen was noticed during unrelated plant pressing at CHARS. It might be interesting since it was successfully barcoded.
-# Before we proceed, let's see if there's a BIN match to the rest of our data. It returned a bin_uri of BOLD:AAI8142
-lookatme <- workingdata %>%
-  filter(bin.uri == "BOLD:AAI8142")
-# Where are the matches from samples that I helped collect?
-table(lookatme$Sector)
-# These could be very interesting to look at.
-# Interestingly, additional specimens were collected by E. Dickenson, S. Kutz in 2022 from Somerset Island.
-# I'm not working on Collembola specifically, but it'd be very interesting to compare their genetic distance.
-
-# Nonetheless, Let's put it aside since it's not necessary to work with it just yet.
-rm(lookatme)
-
 # I wonder if we took that and compared it to the public Nunavut BOLD data.
 # Let's reload our Nunavut data from the previous script and see where that particular BIN is present. Is it all across the arctic?
 canada_data_arthropoda <- read_tsv("data/canada_data_clean_arthropoda.tsv")
-
-# Let's see if that BIN is present in the public BOLD data from Nunavut.
-lookatme <- canada_data_arthropoda %>%
-  filter(bin_uri == "BOLD:AAI8142")
-# Take a quick peek
-table(lookatme$sector)
-# Quite a bit all over Nunavut
-# Fascinating eh?
-
-# That specific BIN found on Northern Victoria Island is present not just on Ellesmere Island, but Cambridge Bay, Gjoa Haven, Kugaaruk, Qikiqtarjuaq, Resolute Bay, and Bylot Island.
-# Nonetheless, let's put it aside for now.
-rm(lookatme,canada_data_arthropoda)
 
 # Okay cool, let's move on. "Victoria Island" will need to be dropped. "North Shaler Mountains" will also need to be dropped too.
 # Matter of fact, let's drop anything that doesn't match the named communities we've sampled in.
@@ -236,11 +192,11 @@ taloyoak <- taloyoak %>%
   distinct(`Sample ID`, .keep_all = TRUE)
 
 # Let's summarize:
-# Cambridge Bay - 27527
-# Kugluktuk - 11046
-# Gjoa Haven - 10303
-# Kugaaruk - 7221
-# Taloyoak - 4311
+# Cambridge Bay - 26639
+# Kugluktuk - 10845
+# Gjoa Haven - 10160
+# Kugaaruk - 7024
+# Taloyoak -4102
 # All duplicates removed.
 
 # Let's perform a save of what we've done so far
@@ -248,7 +204,12 @@ write_tsv(x = cambridgebay, "data/cambridgebay_2024_01_22.tsv")
 write_tsv(x = kugluktuk, "data/kugluktuk_2024_01_22.tsv")
 write_tsv(x = gjoahaven, "data/gjoahaven_2024_01_22.tsv")
 write_tsv(x = kugaaruk, "data/kugaaruk_2024_01_22.tsv")
-write_tsv(x = kugaaruk, "data/taloyoak_2024_01_22.tsv")
+write_tsv(x = taloyoak, "data/taloyoak_2024_01_22.tsv")
+
+# We also need to save the new kitikmeot data
+# To do that, we'll need to combine the communities again
+new_workingdata <- rbind(cambridgebay,kugluktuk,gjoahaven,kugaaruk,taloyoak)
+write_tsv(x = new_workingdata, "data/workingdata_2024_02_05.tsv")
 
 # Let's do a little mapping. We want a figure to represent our sampling sites in Cambridge Bay.
 # register_google(key = "YOURKEYHERE")
