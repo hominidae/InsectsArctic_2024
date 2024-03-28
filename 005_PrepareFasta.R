@@ -246,4 +246,3 @@ cambridgebay_8bins <- cambridgebay %>%
 # 127 Coleoptera
 # 354 Diptera
 # 144 Entomobryomorpha
-
