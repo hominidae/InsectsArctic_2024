@@ -322,3 +322,49 @@ rm(bchar_final,cchar_final,dchar_final,fchar_final,gchar_final,hchar_final,cbay_
 # Write out another tsv containing just the arthropods
 write_tsv(x = final_arth, "data/kitikmeot_data_arth.tsv")
 rm(bchar_arth,cchar_arth,dchar_arth,fchar_arth,gchar_arth,hchar_arth,cbay_arth,kuga_arth,gjoa_arth,kugl_arth,arcba_arth,arcbb_arth,ARCBIOY5_arth,ARCBIOY6_arth,final_arth)
+
+# Load kitikmeot data
+kitikmeot_data <- read_tsv("data/kitikmeot_data.tsv")
+
+# Break the years out into their own fields
+#	Format: 15-Aug-2018
+# dd-mmm-yyyy
+library(lubridate)
+
+# Example
+#test_cbay <- cbay %>%
+#  mutate(year = year(cbay$date),
+#         month = month(cbay$date),
+#         month = month.abb[month],
+#         maxtemp = cbay$maxtemp,
+#         mintemp = cbay$mintemp) %>%
+#  select(year,month,maxtemp,mintemp) %>%
+#  mutate(month = factor(month, levels = month.abb))
+
+# Using dplyr
+#df2 <- df %>% select(-c(id, name, chapters))
+
+# First, let's convert the date format into something usable in their own columns
+kitikmeot_ymd <- kitikmeot_data %>%
+  mutate(yearmonthday = dmy(kitikmeot_data$`Collection Date`),
+         year = year(yearmonthday),
+         month = month(yearmonthday),
+         day = day(yearmonthday)
+  ) %>%
+  select(-c(yearmonthday))
+# Next, let's start selecting by years
+kitikmeot_2018 <- kitikmeot_ymd %>%
+  filter(year == "2018")
+# Let's do 2019
+kitikmeot_2019 <- kitikmeot_ymd %>%
+  filter(year == "2019")
+# Do 2021, there were no collections in 2020 due to COVID
+kitikmeot_2021 <- kitikmeot_ymd %>%
+  filter(year == "2021")
+# Do 2022
+kitikmeot_2022 <- kitikmeot_ymd %>%
+  filter(year == "2022")
+# Do 2023
+kitikmeot_2023 <- kitikmeot_ymd %>%
+  filter(year == "2023")
+# Let's get some summary stats
