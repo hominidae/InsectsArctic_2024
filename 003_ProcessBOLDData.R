@@ -138,9 +138,9 @@ ggplot(uniquebins, aes(y = province_state)) +
   geom_bar(aes(fill = order_name), position = position_stack(reverse = TRUE)) +
   labs(x = "# of unique BINs", y = "Province/Territory", fill = "Order") +
   theme(legend.position = "top", plot.title = element_text(hjust = 0.5)) +
-  scale_x_continuous(labels = comma) +
+  scale_x_continuous(labels = comma, breaks=seq(0, 40000, by = 5000)) +
   scale_fill_viridis(discrete=TRUE) +
-  geom_label(nudge_x = 1500, stat='count', aes(label=after_stat(count))) +
+  geom_label(nudge_x = 1000, stat='count', aes(label=after_stat(count))) +
   ggtitle("Unique BINs in Public DNA Barcoding Data from Canada")
 
 # Let's do some garbage collection
