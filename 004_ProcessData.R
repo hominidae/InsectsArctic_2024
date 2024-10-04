@@ -42,7 +42,7 @@ library(viridis)
 library(phylotools)
 
 # Load our working data set ----
-workingdata <- read_tsv("data/kitikmeot_data_arth.tsv")
+workingdata <- read_tsv("data/kitikmeot_data.tsv")
 
 # Before we remove NA's in the bin.uri column, let's look at what sequences we're losing
 nonworkingdata <- (workingdata[is.na(workingdata$bin.uri),])
@@ -81,7 +81,7 @@ table(workingdata$Sector)
 
 # I wonder if we took that and compared it to the public Nunavut BOLD data.
 # Let's reload our Nunavut data from the previous script and see where that particular BIN is present. Is it all across the arctic?
-canada_data_arthropoda <- read_tsv("data/canada_data_clean_arthropoda.tsv")
+canada_data_arthropoda <- read_tsv("data/canada_data_clean.tsv")
 
 # Okay cool, let's move on. "Victoria Island" will need to be dropped. "North Shaler Mountains" will also need to be dropped too.
 # Matter of fact, let's drop anything that doesn't match the named communities we've sampled in.
@@ -126,9 +126,10 @@ workingdata <- workingdata %>%
 ggplot(workingdata, aes(y = Sector)) +
   geom_bar(aes(fill = Order)) +
   labs(x = "# of Specimens", y = "Community", title = "Specimens prior to filtering out all aquatic invertebrates") +
-  theme(legend.position = "top") +
+  theme(legend.position = "top", plot.title = element_text(hjust = 0.5)) +
+  scale_x_continuous(labels = comma, breaks=seq(0, 30000, by = 5000)) +
   scale_fill_viridis(discrete=TRUE) +
-  geom_label(stat='count', aes(label=after_stat(count)))
+  geom_label(nudge_x = 750, stat='count', aes(label=after_stat(count)))
 
 # Save our state
 write_tsv(x = workingdata, "data/workingdata_2024_01_22.tsv")
@@ -211,8 +212,12 @@ write_tsv(x = taloyoak, "data/taloyoak_2024_01_22.tsv")
 new_workingdata <- rbind(cambridgebay,kugluktuk,gjoahaven,kugaaruk,taloyoak)
 write_tsv(x = new_workingdata, "data/workingdata_2024_02_05.tsv")
 
+# Let's generate some stats, percentage-wise what are the most represented orders?
+tabulated <- table(new_workingdata$Order)
+tabulated <- data.frame(tabulated)
+
 # Let's do a little mapping. We want a figure to represent our sampling sites in Cambridge Bay.
-# register_google(key = "YOURKEYHERE")
+#register_google(key = "YOURKEYHERE")
 
 # Let's start with mapping Cambridge Bay specimens.
 cbay_map <- get_map(
@@ -317,7 +322,7 @@ library(ggalluvial)
 
 # Generate the plot. Warning, takes a long time.
 ggplot(data = workingdata_boldcount_dates,
-       aes(axis1 = year, axis2 = Sector, axis3 = Order,
+       aes(axis1 = Order, axis2 = Sector,
            y = Freq)) +
   scale_x_discrete(limits = c("Year","Community","Order"), expand = c(.2, .05)) +
   xlab("Phylogeny") +
